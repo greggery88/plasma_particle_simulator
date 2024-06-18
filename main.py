@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as anim
-import mpl_toolkits.mplot3d.axes3d as p3
+from matplotlib.animation import FuncAnimation
+from itertools import count
 
 particle_dic = {
     "electron": {"charge": -1.602 * 10**-19, "mass": 9.11 * 10**-31, "color": "b"},
@@ -10,7 +10,7 @@ particle_dic = {
 
 bo = np.array([0, 0, 10**-9])  # the magnitude of the magnetic field.
 E = np.array([0, 0, 0])
-t = np.linspace(0, 100, 100)
+time = count()
 x_values = []
 y_values = []
 z_values = []
@@ -21,7 +21,7 @@ class Particle:
         self.x = p_x
         self.y = p_y
         self.z = p_z
-        self.pos = np.array([self.x, self.y, self.z])
+        self.pos = np.array([p_x, p_y, p_z])
         self.v = np.array([1, 0, 0])
         self.q = p_type["charge"]
         self.m = p_type["mass"]
@@ -31,23 +31,22 @@ class Particle:
         F = self.q * (E + np.cross(self.v, bo))
         a = F / self.m
         self.v = a
-
-    def particle_motion(self):
         self.pos = self.v + self.pos
-        print("hi")
 
 
-def animate_values(t_max, p):
-    x_values.append(p.x)
-    y_values.append(p.y)
-    z_values.append(p.z)
-    for _ in t_max:
-        p.force_calc()
-        p.particle_motion()
-        print(p.x)
-        x_values.append(p.x)
-        y_values.append(p.y)
-        z_values.append(p.z)
+p = Particle(0, 0, 0, particle_dic["electron"])
+
+
+def animate(i):
+    t = next(time)
+    print(t)
+    # for _ in range(t):
+    # p.force_calc()
+    x_values.append(p.pos[0] + 1)
+    y_values.append(p.pos[1])
+    z_values.append(p.pos[2])
+    # print([x_values, y_values, z_values])
+    plt.scatter(x_values, y_values, z_values)
 
 
 # run function
@@ -58,14 +57,10 @@ def main():
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
-    # set up particles
-    p = Particle(1, 0, 0, particle_dic["electron"])
-    animate_values(t, p)
-    print(x_values)
-    print(y_values)
-    print(z_values)
-    scat = ax.scatter(p.x, p.y, p.z, marker="v", c=p.color)
 
+    # scat = ax.scatter(p.x, p.y, p.z, marker="v", c=p.color)
+
+    anim = FuncAnimation(plt.gcf(), animate, interval=1000)
     # set up viewer
     plt.show()
 
