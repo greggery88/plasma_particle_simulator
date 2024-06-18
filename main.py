@@ -29,6 +29,7 @@ def force_calc(p):
     vxb = np.cross(p.v, bo)
     a = p.q * (E + vxb) / p.m
     p.v = p.v + a
+    print(a)
 
 
 # run function
