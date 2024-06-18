@@ -8,7 +8,7 @@ particle_dic = {
     "proton": {"charge": 1.602 * 10**-19, "mass": 1.67 * 10**-27, "color": "r"},
 }
 
-bo = np.array([0, 0, 10**-9])  # the magnitude of the magnetic field.
+bo = np.array([0, 0, 1])  # the magnitude of the magnetic field.
 E = np.array([0, 0, 0])
 time = count()
 x_values = []
@@ -30,23 +30,23 @@ class Particle:
     def force_calc(self):
         F = self.q * (E + np.cross(self.v, bo))
         a = F / self.m
-        self.v = a
+        self.v = self.v + a * 0.00000001
         self.pos = self.v + self.pos
 
 
-p = Particle(0, 0, 0, particle_dic["electron"])
+p = Particle(0, 0, 0, particle_dic["proton"])
 
 
 def animate(i):
     t = next(time)
     print(t)
-    # for _ in range(t):
-    # p.force_calc()
-    x_values.append(p.pos[0] + 1)
+
+    p.force_calc()
+    x_values.append(p.pos[0])
     y_values.append(p.pos[1])
     z_values.append(p.pos[2])
-    # print([x_values, y_values, z_values])
-    plt.scatter(x_values, y_values, z_values)
+    print([x_values])
+    plt.plot(x_values, y_values, z_values, marker=".")
 
 
 # run function
@@ -60,7 +60,7 @@ def main():
 
     # scat = ax.scatter(p.x, p.y, p.z, marker="v", c=p.color)
 
-    anim = FuncAnimation(plt.gcf(), animate, interval=1000)
+    anim = FuncAnimation(plt.gcf(), animate, 10, interval=1000)
     # set up viewer
     plt.show()
 
