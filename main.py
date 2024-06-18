@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 particle_dic = {
     "electron": {"charge": -1.602 * 10**-19, "mass": 9.11 * 10 * -31},
     "proton": {"charge": 1.602 * 10**-19, "mass": 1.67 * 10**-27},
@@ -9,6 +8,7 @@ particle_dic = {
 
 bo = np.array([0, 0, 1])  # the magnitude of the magnetic field.
 E = np.array([0, 0, -1])
+t = 0
 
 
 class Particle:
@@ -24,20 +24,19 @@ class Particle:
         self.q = p_type["charge"]
         self.m = p_type["mass"]
 
+    def force_calc(self):
+        a = self.q * (E + np.cross(self.v, bo)) / self.m
+        self.v = self.v + a
 
-def force_calc(p):
-    vxb = np.cross(p.v, bo)
-    a = p.q * (E + vxb) / p.m
-    p.v = p.v + a
-    print(a)
+    def particle_motion(self):
+        self.pos = self.v + self.pos
 
 
 # run function
 def main():
-    p = Particle(1, 1, 1, particle_dic["proton"])
-    force_calc(p)
-
-    # faneiof[an
+    ps = [Particle(1, 0, 0, particle_dic["electron"]) for _ in range(1)]
+    
+    # set up viewer
     plt.show()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
