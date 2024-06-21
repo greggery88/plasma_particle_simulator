@@ -14,10 +14,10 @@ def main():
     # universal constance.
     e = -1.602 * 10**-19
     k = 8.99 * 10**9
-
+    c = 3 * 10**8
     # fields
     ef = np.array([0, 0, 0])
-    bf = np.array([0, 0, 1])
+    bf = np.array([0, 0, 10**11])
 
     # particle dictionary
     pd = {
@@ -41,15 +41,21 @@ def main():
 
             # particle vectors
             self.pos = np.random.uniform(-1, 1, size=3)
-            self.velo = np.array([10, 0, 0])
+            self.velo = np.array([1, 0, 0])
             self.accel = np.array([0, 0, 0])
 
         def calc_pos(self, t, ps, es):
             debye_length = 10
             f_tot = np.zeros(3)
             # magnetic fields
+            vxb = np.cross(self.velo, bf)
+            log.info(vxb)
 
-            ff = self.q * (ef + np.cross(self.velo, bf))
+            l_vxb = np.sqrt(vxb[0] ** 2 + vxb[1] ** 2 + vxb[2] ** 2)
+
+            log.info(vxb / l_vxb)
+            ff = (e * self.m * self.velo) / (c * self.q)
+
             log.info(ff)
             f_tot = ff + f_tot
 
@@ -138,4 +144,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
