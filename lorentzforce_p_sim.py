@@ -53,17 +53,19 @@ def main():
 
             # particle vectors
             self.pos = np.random.uniform(-1, 1, size=3)
-            self.velo = np.array([1, 0, 0])
+            self.velo = np.array([0, 0, 0])
             self.accel = np.array([0, 0, 0])
 
         def calc_pos(self, t, ps, es):
-            debye_length = 10
+            debye_length = 1
             f_tot = np.zeros(3)
-            if self.q != 0:
-                print(np.cross(self.velo, bf))
-                f = 10 * 3 * np.cross(self.velo, bf) / calc_mag(np.cross(self.velo, bf))
+            timestep = 0.00000000001
+            # print(np.cross(self.velo, bf))
+            f = self.q * (ef + np.cross(self.velo, bf))  # -   self.q * (self.velo / c**2) * (np.dot(self.velo, ef))
 
-                f_tot = f_tot + f
+            # f = f / lorentz_facter
+
+            f_tot = f_tot + f
             # internal electric fields
             for p in ps:
                 if p != self:
@@ -98,12 +100,14 @@ def main():
                             * displacement
                             / distance
                         )
-                        f_tot = f + f_tot
+                        f_tot += f
 
             # find the posiont from the forces
-            self.accel = f_tot
-            self.velo = self.velo + self.accel
-            self.pos = self.pos + self.velo
+            self.accel = f_tot / self.m
+            self.velo = self.velo + self.accel * timestep
+            if calc_mag(self.velo) > 3.0 * 10**8:
+                self.velo = 3.0*10**8 * self.velo / calc_mag(self.velo)
+            self.pos += self.velo * timestep
 
             # append position
             self.xs.append(self.pos[0])
@@ -111,7 +115,7 @@ def main():
             self.zs.append(self.pos[2])
 
         def draw(self):
-            plt.plot(self.xs, self.ys, self.zs, c=self.c, alpha=(self.alpha - 0.59))
+            plt.plot(self.xs, self.ys, self.zs, c=self.c, alpha=(self.alpha - 0.1))
             plt.plot(
                 self.pos[0],
                 self.pos[1],
@@ -121,8 +125,8 @@ def main():
                 marker=".",
             )
 
-    particles_p = [Particle(pd["proton"]) for _ in range(1)]
-    particles_e = [Particle(pd["electron"]) for _ in range(0)]
+    particles_p = [Particle(pd["proton"]) for _ in range(10)]
+    particles_e = [Particle(pd["electron"]) for _ in range(10)]
 
     def animate_particle(t):
         log.info(next(n))
@@ -143,7 +147,7 @@ def main():
 
     # animation function
     # noinspection PyUnusedLocal,PyTypeChecker
-    anim = FuncAnimation(plt.gcf(), animate_particle, frames=100, repeat=False)
+    anim = FuncAnimation(plt.gcf(), animate_particle, repeat=False)
     fig.canvas.mpl_connect("close_event", on_close_event)
 
     # print graphic
