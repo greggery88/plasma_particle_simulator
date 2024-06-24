@@ -19,12 +19,12 @@ pd = {
 
 
 def magnetic_field():
-    magnetic_field_ = np.array([0, 0, 1])
+    magnetic_field_ = np.array([0, 0, 0])
     return magnetic_field_
 
 
 def electric_field():
-    electric_field_ = np.array([0, 0, 1])
+    electric_field_ = np.array([0, 0, ])
     return electric_field_
 
 
