@@ -24,7 +24,12 @@ def magnetic_field():
 
 
 def electric_field():
-    electric_field_ = np.array([0, 0, ])
+    electric_field_ = np.array(
+        [
+            0,
+            0,
+        ]
+    )
     return electric_field_
 
 
