@@ -19,7 +19,7 @@ pd = {
 
 
 def magnetic_field():
-    magnetic_field_ = np.array([0, 0, 0])
+    magnetic_field_ = np.array([0, 0, 10**-3])
     return magnetic_field_
 
 
@@ -28,6 +28,7 @@ def electric_field():
         [
             0,
             0,
+            10**-3,
         ]
     )
     return electric_field_
@@ -68,7 +69,7 @@ def main():
             # particle vectors
             self.position = np.random.uniform(-0.0001, 0.0001, size=3)
             self.velocity = np.array([1, 0, 0])
-            self.a = np.array([0, 0, 0])
+            self.acceleration = np.array([0, 0, 0])
 
         # noinspection PyUnresolvedReferences
         def calculate_pos_v_a(self, particles_):
@@ -89,14 +90,14 @@ def main():
             # timestep to add detail for the integrate
             # edit to slow down or speed up.
             # speeding up the graph removes detail.
-            timestep = 0.000000000001
+            timestep = 10**-9
 
             # calculates acceleration
-            self.a = resultant_force / self.mass
+            self.acceleration = resultant_force / self.mass
 
             # calculates velocity
-            self.velocity += self.a * timestep
-
+            self.velocity = self.velocity + self.acceleration * timestep
+            print(self.velocity)
             # calculates position
             self.position = self.position + self.velocity * timestep
 
@@ -109,11 +110,8 @@ def main():
             for p in particles_:
                 if p != self:
                     displacement = p.position - self.position
-                    distance = np.sqrt(
-                        displacement[0] ** 2
-                        + displacement[1] ** 2
-                        + displacement[2] ** 2
-                    )
+                    distance = calculate_vector_mag(displacement)
+
                     if distance < debye_length:
                         force = -(
                             1
@@ -123,7 +121,7 @@ def main():
                             / distance
                         )
                         resultant_force += force
-                        print(resultant_force)
+
             return resultant_force
 
         def external_field(self):
@@ -146,8 +144,9 @@ def main():
                 marker=".",
             )
 
-    particles = [Particle(pd["electron"]) for _ in range(1)]
-    # particles.append(Particle(pd["proton"]))
+    particles = [Particle(pd["electron"]) for _ in range(0)]
+    for _ in range(1):
+        particles.append(Particle(pd["proton"]))
 
     def animate_particle(t):
         log.info(next(n))
