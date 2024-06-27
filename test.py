@@ -1,8 +1,10 @@
-import unittest
-import numpy as np
-import lorentzforce_p_sim as lfp
-import matplotlib.pyplot as plt
 import logging
+import unittest
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import lorentzforce_p_sim as lfp
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -50,29 +52,24 @@ class MyTestCase(unittest.TestCase):
 
     def test_vector_field(self):
         fig = plt.figure()
-        ax = fig.add_subplot()  # projection="3d"
+        ax = fig.add_subplot(projection="3d")  # projection="3d"
         ax.set_xlabel("x")
-        x = np.linspace(0, 6600000, 10)
-        y = np.linspace(-6600000, 6600000, 10)
-        # z = np.linspace(-100, 100, 4)
-        x, y = np.meshgrid(x, y)
-        b = field(x, y)
+        x = np.linspace(-1, 1, 4)
+        y = np.linspace(-1, 1, 4)
+        z = np.linspace(-1, 1, 4)
+        x, z, y = np.meshgrid(x, y, z)
+        b = lfp.magnetic_field(x, y, z)
         u = b[0]
         v = b[1]
+        w = b[2]
 
-        ax.quiver(x, y, u, v, color="b", scale=1)  # , normalize=True, length=20
+        plt.quiver(
+            x, y, z, u, v, w, color="b", normalize=True, length=0.5
+        )  # , normalize=True, length=20
         # north_pole
-        plt.plot(0, 0, color="r", marker="v")
+        # plt.plot(x, y, marker=".")
+        plt.plot(0, 0, 0, color="r", marker="v")
         plt.show()
-
-
-def field(x, y):
-    theta = np.arccos(x / y)
-    theta_deg = theta * 180 / np.pi
-    print(theta_deg)
-    r = x * np.sin(theta)
-    b = 8**-15 * np.sin(theta) / r**3 * np.array([r / np.sin(theta), r / np.cos(theta)])
-    return b
 
 
 if __name__ == "__main__":
