@@ -5,71 +5,41 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import lorentzforce_p_sim as lfp
+from particles import *
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 class MyTestCase(unittest.TestCase):
-    def test_something(self):
+    def test_what_did_i_break(self):
 
-        p = lfp.Particle(lfp.pd["electron"])
-        p.velocity = np.array([0.5, 1, 0])
-        ax, ay, az = lfp.unit_vector(p.external_field())
-        for _ in range(10):
-            p.calculate_pos_v_a()
-            log.info("1")
-            v = p.velocity
-            a = p.acceleration
-            v1_u = lfp.unit_vector(v)
-            v2_u = lfp.unit_vector(a)
-            rads = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-            deg = rads * 180 / np.pi
+        p = PosComputeParticle(lfp.pd["electron"])
+        gyro_center = (
+            p.mass
+            * mag(p.velocity)
+            / (abs(p.charge) * mag(p.magnetic_field()))
+            * unit_vector(np.cross(p.velocity, p.magnetic_field()))
+        )
 
-            self.assertEqual(deg, 90)
+        for _ in range(10000):
+            p.update_position()
+        rc = (
+            p.mass
+            * mag(p.velocity)
+            / (abs(p.charge) * mag(p.magnetic_field()))
+            * unit_vector(np.cross(p.velocity, p.magnetic_field()))
+        )
+        self.assertAlmostEqual(mag(gyro_center), mag(p.get_position() + rc), 14)
+        self.assertAlmostEqual(mag(gyro_center), mag(rc), 14)
 
-    def test_unit_vector(self):
-        v1 = np.array([0, 0, 0])
-        v2 = np.array([1, 0, 0])
-        v3 = np.array([100, 0, 0])
-        v4 = np.array([3, 3, 3])
-        # v1
-        self.assertEqual(lfp.unit_vector(v1)[0], 0)
-        self.assertEqual(lfp.unit_vector(v1)[1], 0)
-        self.assertEqual(lfp.unit_vector(v1)[2], 0)
-        # v2
-        self.assertEqual(lfp.unit_vector(v2)[0], 1)
-        self.assertEqual(lfp.unit_vector(v2)[1], 0)
-        self.assertEqual(lfp.unit_vector(v2)[2], 0)
-        # v3
-        self.assertEqual(lfp.unit_vector(v3)[0], 1)
-        self.assertEqual(lfp.unit_vector(v3)[1], 0)
-        self.assertEqual(lfp.unit_vector(v3)[2], 0)
-        # v4
-        self.assertEqual(lfp.unit_vector(v4)[0], np.sqrt(3) / 3)
-        self.assertEqual(lfp.unit_vector(v4)[1], np.sqrt(3) / 3)
-        self.assertEqual(lfp.unit_vector(v4)[2], np.sqrt(3) / 3)
-
-    def test_vector_field(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(projection="3d")  # projection="3d"
-        ax.set_xlabel("x")
-        x = np.linspace(-1, 1, 4)
-        y = np.linspace(-1, 1, 4)
-        z = np.linspace(-1, 1, 4)
-        x, z, y = np.meshgrid(x, y, z)
-        b = lfp.magnetic_field(x, y, z)
-        u = b[0]
-        v = b[1]
-        w = b[2]
-
-        plt.quiver(
-            x, y, z, u, v, w, color="b", normalize=True, length=0.5
-        )  # , normalize=True, length=20
-        # north_pole
-        # plt.plot(x, y, marker=".")
-        plt.plot(0, 0, 0, color="r", marker="v")
-        plt.show()
+    def test_rc(self):
+        p = PosComputeParticle(lfp.get_pd()["electron"])
+        for _ in range(1):
+            p.update_position()
+        rc = p.rc()
+        self.assertAlmostEqual(mag(p.rc()), 0, 14)
+        self.assertEqual(mag(p.rc()), 0)
 
 
 if __name__ == "__main__":
