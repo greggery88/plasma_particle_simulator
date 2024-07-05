@@ -69,7 +69,7 @@ def main(model):
         p.update_position()
         if t % 1 == 0:
             draw_display(ax, p, params)
-        scale = 10**-9
+        scale = 1 * 10**-14
         # ax.set_ylim(-3 * scale, 3 * scale)
         # ax.set_xlim(-3 * scale, 3 * scale)
         # ax.set_zlim(-3 * scale, 3 * scale)
@@ -82,7 +82,6 @@ def main(model):
     anim = FuncAnimation(
         fig,
         animate_particle,
-        frames=10000,
         repeat=False,
         fargs=(fig, ax),
     )

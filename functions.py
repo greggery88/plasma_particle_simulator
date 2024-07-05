@@ -2,7 +2,10 @@ import numpy as np
 
 
 def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
+    if mag(vector) != 0:
+        return vector / np.linalg.norm(vector)
+    else:
+        return np.zeros(3)
 
 
 def mag(vector):

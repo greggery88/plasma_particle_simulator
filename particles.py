@@ -13,17 +13,19 @@ class BaseParticle(object):
     def __init__(
         self,
         params,
-        start_position=np.array([0.0, 0.0, 0.0]),
-        start_velocity=np.array([0.0, 0.04, 0.0]),
+        start_position_=np.array([0.0, 0.0, 0.0]),
+        start_velocity_=np.array([0.0, 0.04, 1.0]),
     ):
+        start_position = start_position_
+        start_velocity = start_velocity_
 
         self.charge = params["Q"]
         self.mass = params["m"]
 
-        self.start_position = np.array([0.0, 0.0, 0.0])
-        self.start_velocity = np.array([0.0, 0.04, 0.0])
+        self.start_position = start_position
+        self.start_velocity = start_velocity
 
-        self.position_ = start_position
+        self.position = start_position
         self.velocity = start_velocity
 
         self.position_history_x = []
@@ -31,12 +33,12 @@ class BaseParticle(object):
         self.position_history_z = []
 
     def update(self):
-        self.position_history_x.append(self.position_[0])
-        self.position_history_y.append(self.position_[1])
-        self.position_history_z.append(self.position_[2])
+        self.position_history_x.append(self.position[0])
+        self.position_history_y.append(self.position[1])
+        self.position_history_z.append(self.position[2])
 
     def get_position(self):
-        return self.position_
+        return self.position
 
     def get_history(self):
         return [
@@ -50,37 +52,61 @@ class PosComputeParticle(BaseParticle):
     def __init__(self, p_type):
         super().__init__(p_type)
 
-    def rc(self):
-        gyro_center = (
-            self.mass
-            * mag(self.start_velocity)
-            / (abs(self.charge) * mag(self.magnetic_field()))
-            * unit_vector(np.cross(self.start_velocity, self.magnetic_field()))
-        )
-        rc = (
-            self.mass
-            * mag(self.velocity)
-            / (abs(self.charge) * mag(self.magnetic_field()))
-            * unit_vector(np.cross(self.velocity, self.magnetic_field()))
-        )
-        difference = rc - gyro_center
-        return difference
-
     def magnetic_field(self):
-        x, y, x = self.position_
-        return np.array([0.0, 0.0, 1.0])
+        x, y, x = self.position
+        return np.array([0.0, 0.0, 10.0])
 
-    def update_position(self, delta_s=10**-17):
+    def update_position(self, delta_s=3 * 10**-11):
         # what is the force
         force = self.charge * np.cross(self.velocity, self.magnetic_field())
         # accel = force/mass
         accel = force / self.mass
         # increment velocity based on accel
         self.velocity += accel * delta_s
+
         # increment position based on velocity
-        self.position_ += self.velocity * delta_s - self.rc()
+        self.position += self.velocity * delta_s
 
         super().update()
+
+    def axes(self, b):
+        n1 = unit_vector(np.cross(np.array([0, 1, 0]), b))
+        n2 = unit_vector(np.cross(b, n1))
+        b = unit_vector(b)
+        return n1, n2, b
+
+
+class ComputeParticle(BaseParticle):
+    def __init__(self, p_type):
+        super().__init__(p_type)
+
+    def magnetic_field(self):
+        x, y, x = self.position
+        return np.array([0.0, 0.0, 10.0])
+
+    def update_position(self, delta_s=10**-10):
+        # what is the force
+        force = self.charge * np.cross(self.velocity, self.magnetic_field())
+        # accel = force/mass
+        accel = force / self.mass
+        # increment velocity based on accel
+        self.velocity += accel * delta_s
+
+        # increment position based on velocity
+        self.position += self.velocity * delta_s
+
+        super().update()
+
+    def axes(self, b):
+        n1 = unit_vector(np.cross(np.array([0, 1, 0]), b))
+        n2 = unit_vector(np.cross(unit_vector(b), np.array([1, 0, 0])))
+        b = unit_vector(b)
+        return n1, n2, b
+
+    def perpindicular_parallel_velocitys(self):
+        perpendicular_velocity = 1
+        parallel_velocity = 1
+        return perpendicular_velocity, parallel_velocity
 
 
 class SimpleParticle(BaseParticle):
@@ -140,8 +166,8 @@ class SimpleParticle(BaseParticle):
         b_hat = unit_vector(self.magnetic_field())
         pos = np.array(x * n1_hat + y * n2_hat + z * b_hat)
         self.velocity = np.array(v[0] * n1_hat + v[1] * n2_hat + v[2] * b_hat)
-        self.position_ = pos
-        x, y, z = self.position_
+        self.position = pos
+        x, y, z = self.position
         super().update()
         return x, y, z
 
