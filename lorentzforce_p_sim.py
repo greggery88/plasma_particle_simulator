@@ -38,9 +38,11 @@ pd = {
 def draw_display(ax, p, params):
     x, y, z = p.get_position()
     hx, hy, hz = p.get_history()
+    u, v, w = p.magnetic_field()
 
     # plot the particle
     ax.cla()
+    ax.quiver(x, y, z, u, v, w)
     plt.plot(hx, hy, hz, c=params["c"], alpha=0.3)
     plt.plot(x, y, z, c=params["c"], alpha=1, marker="o")
 
@@ -66,10 +68,10 @@ def main(model):
 
     def animate_particle(t, fig, ax):
         log.info(next(n))
-        p.update_position()
-        if t % 1 == 0:
-            draw_display(ax, p, params)
-        scale = 1 * 10**-14
+        for _ in range(500000):
+            p.update_position()
+        draw_display(ax, p, params)
+        scale = 5 * 10**-10
         # ax.set_ylim(-3 * scale, 3 * scale)
         # ax.set_xlim(-3 * scale, 3 * scale)
         # ax.set_zlim(-3 * scale, 3 * scale)
@@ -82,6 +84,7 @@ def main(model):
     anim = FuncAnimation(
         fig,
         animate_particle,
+        frames=4,
         repeat=False,
         fargs=(fig, ax),
     )

@@ -14,7 +14,7 @@ class BaseParticle(object):
         self,
         params,
         start_position_=np.array([0.0, 0.0, 0.0]),
-        start_velocity_=np.array([0.0, 0.04, 1.0]),
+        start_velocity_=np.array([-10.0, 0.0, 0.1]),
     ):
         start_position = start_position_
         start_velocity = start_velocity_
@@ -31,6 +31,8 @@ class BaseParticle(object):
         self.position_history_x = []
         self.position_history_y = []
         self.position_history_z = []
+
+        self.interation = 0
 
     def update(self):
         self.position_history_x.append(self.position[0])
@@ -53,10 +55,15 @@ class PosComputeParticle(BaseParticle):
         super().__init__(p_type)
 
     def magnetic_field(self):
-        x, y, x = self.position
-        return np.array([0.0, 0.0, 10.0])
+        # y = -2x^2
+        x = 1
+        y = 0
+        z = -400000 * self.position[2]
+        rp = np.array([x, y, z])
+        return 10 * (rp / mag(rp))
 
-    def update_position(self, delta_s=3 * 10**-11):
+    def update_position(self, delta_s=1 / 48 * 10**-11):
+        self.interation += 1
         # what is the force
         force = self.charge * np.cross(self.velocity, self.magnetic_field())
         # accel = force/mass
@@ -66,8 +73,9 @@ class PosComputeParticle(BaseParticle):
 
         # increment position based on velocity
         self.position += self.velocity * delta_s
-
-        super().update()
+        if self.interation % 1000 == 0:
+            print(self.interation)
+            super().update()
 
     def axes(self, b):
         n1 = unit_vector(np.cross(np.array([0, 1, 0]), b))
