@@ -1,4 +1,3 @@
-import logging
 from itertools import count
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -38,8 +37,10 @@ pd = {
 def draw_display(ax, p, params):
     x, y, z = p.get_position()
     hx, hy, hz = p.get_history()
+    # noinspection PyUnusedLocal
     u, v, w = p.magnetic_field()
-    l = len(hx) - 1
+    # noinspection PyUnusedLocal
+
     # plot the particle
     ax.cla()
     u, v, w = p.parallel_velocity()
@@ -48,6 +49,7 @@ def draw_display(ax, p, params):
     plt.quiver(x, y, z, u, v, w, length=5 * 10**-8)
     # ax.quiver(x, y, z, u, v, w)
     plt.plot(hx, hy, hz, c=params["c"], alpha=0.3)
+    # l = len(hx) - 1
     # plt.plot(hx[l], hy[l], hz[l], c=params["c"], alpha=1, marker="o")
 
     ax.set_xlabel("x")
@@ -70,30 +72,25 @@ def main(model):
     # particle
     p = model(pd["proton"])
 
-    def animate_particle(t, fig, ax):
+    def animate_particle(_ax):
         log.info(next(n))
         for _ in range(1000000):
-            p.update_position()
+            p.update_position(delta_s=4)
         print(mag(p.velocity))
         p.pitch_angle()
-        draw_display(ax, p, params)
-        scale = 5 * 10**-10
+        draw_display(_ax, p, params)
+        # scale = 5 * 10**-10
         # ax.set_ylim(-3 * scale, 3 * scale)
         # ax.set_xlim(-3 * scale, 3 * scale)
         # ax.set_zlim(-3 * scale, 3 * scale)
 
+    # noinspection PyUnusedLocal
     def on_close_event(event):  # close function
         quit()
 
     # animation function
     # noinspection PyUnusedLocal,PyTypeChecker
-    anim = FuncAnimation(
-        fig,
-        animate_particle,
-        frames=100,
-        repeat=False,
-        fargs=(fig, ax),
-    )
+    anim = FuncAnimation(fig, animate_particle, frames=100, repeat=False, fargs=ax)
     fig.canvas.mpl_connect("close_event", on_close_event)
 
     # print graphic

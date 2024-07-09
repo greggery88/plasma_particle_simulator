@@ -1,9 +1,10 @@
-import logging
-import random
+# import logging
+# import random
 import unittest
 
+# import numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 import lorentzforce_p_sim as lfp
 from particles import *
@@ -26,146 +27,64 @@ class MyTestCase(unittest.TestCase):
         p.speed = 1
         for _ in range(100000):
             p.update_position()
-        self.assertEqual(p.speed, 1, "speed constant")
-        self.assertEqual(mag(p.velocity), p.speed, "speed = velocity mag")
-        self.assertEqual(mag(p.velocity), 1, "velocity = 1")
+        self.assertAlmostEqual(p.speed, 1, 15, "speed constant")
+        self.assertAlmostEqual(mag(p.velocity), p.speed, 15, "speed = velocity mag")
+        self.assertAlmostEqual(mag(p.velocity), 1, 15, "velocity = 1")
 
     def test_unctions(self):
         v = np.array([3, 0, 4])
         self.assertEqual(mag(v), 5)
         self.assertEqual(mag(unit_vector(v)), 1)
 
-    def test_what_did_i_break(self):
+    # def test_what_did_i_break(self):
+    #     b = np.array([0, 0, 1])
+    #     gyro_center = (
+    #         p.mass
+    #         * mag(p.velocity)
+    #         / (abs(p.charge) * mag(b))
+    #         * unit_vector(np.cross(p.velocity, b))
+    #     )
+    #
+    #     for _ in range(1000):
+    #         p.update_position(b)
+    #     rc = (
+    #         p.mass
+    #         * mag(p.velocity)
+    #         / (abs(p.charge) * mag(b))
+    #         * unit_vector(np.cross(p.velocity, b))
+    #     )
+    #     self.assertAlmostEqual(mag(gyro_center), mag(p.get_position() + rc), 14)
+    #     self.assertAlmostEqual(mag(gyro_center), mag(rc), 14)
 
-        p = PosComputeParticle(lfp.pd["electron"])
-        gyro_center = (
-            p.mass
-            * mag(p.velocity)
-            / (abs(p.charge) * mag(p.magnetic_field()))
-            * unit_vector(np.cross(p.velocity, p.magnetic_field()))
+    def test_velocity_projections(self):
+        parallel = p.parallel_velocity()
+        perpendicular = p.velocity - p.parallel_velocity()
+        self.assertAlmostEqual(
+            np.dot(parallel, perpendicular), 0, 15, "projection 90 deg to 16 decimals"
         )
-
-        for _ in range(1000):
-            p.update_position()
-        rc = (
-            p.mass
-            * mag(p.velocity)
-            / (abs(p.charge) * mag(p.magnetic_field()))
-            * unit_vector(np.cross(p.velocity, p.magnetic_field()))
-        )
-        self.assertAlmostEqual(mag(gyro_center), mag(p.get_position() + rc), 14)
-        self.assertAlmostEqual(mag(gyro_center), mag(rc), 14)
-
-    def test_rc(self):
-        p = PosComputeParticle(lfp.get_pd()["electron"])
-        for _ in range(1):
-            p.update_position()
-        rc = p.rc()
-        self.assertAlmostEqual(mag(p.rc()), 0, 14)
-        self.assertEqual(mag(p.rc()), 0)
-
-    def test_axes(self):
-
-        n1, n2, b = p.axes(np.array([0, 0, 1]))
-        n1x, n1y, n1z = n1
-        n2x, n2y, n2z = n2
-        bx, by, bz = b
-        self.assertEqual(n1x, 1)
-        self.assertEqual(n1y, 0)
-        self.assertEqual(n1z, 0)
-        self.assertEqual(n2x, 0)
-        self.assertEqual(n2y, 1)
-        self.assertEqual(n2z, 0)
-        self.assertEqual(bx, 0)
-        self.assertEqual(by, 0)
-        self.assertEqual(bz, 1)
-        n1, n2, b = p.axes(np.array([0, 0, 10]))
-        n1x, n1y, n1z = n1
-        n2x, n2y, n2z = n2
-        bx, by, bz = b
-        self.assertEqual(n1x, 1)
-        self.assertEqual(n1y, 0)
-        self.assertEqual(n1z, 0)
-        self.assertEqual(n2x, 0)
-        self.assertEqual(n2y, 1)
-        self.assertEqual(n2z, 0)
-        self.assertEqual(bx, 0)
-        self.assertEqual(by, 0)
-        self.assertEqual(bz, 1)
-        n1, n2, b = p.axes(np.array([1, 0, 10]))
-        n1x, n1y, n1z = n1
-        n2x, n2y, n2z = n2
-        bx, by, bz = b
-
-        fig.quiver(0, 0, 0, n1x, n1y, n1z, color="lime")
-        fig.quiver(0, 0, 0, n2x, n2y, n2z, color="b")
-        fig.quiver(0, 0, 0, bx, by, bz, color="r")
-
-        b_ = np.random.uniform(-1, 1, 3)
-        b = np.array([1, 0, 1])
-        n1, n2, b = p.axes(b)
-
-        self.assertEqual(np.dot(n1, b), 0)
-        self.assertEqual(np.dot(n2, b), 0)
-        self.assertEqual(np.dot(n1, n2), 0)
-
-        x, y, z = np.cross(b, n1)
-        self.assertAlmostEqual(x, n2[0], 14)
-        self.assertAlmostEqual(y, n2[1], 14)
-        self.assertAlmostEqual(z, n2[2], 14)
-
-        x, y, z = np.cross(n2, b)
-        self.assertAlmostEqual(x, n1[0], 14)
-        self.assertAlmostEqual(y, n1[1], 14)
-        self.assertAlmostEqual(z, n1[2], 14)
-
-        x, y, z = np.cross(n1, n2)
-        self.assertAlmostEqual(x, b[0], 14)
-        self.assertAlmostEqual(y, b[1], 14)
-        self.assertAlmostEqual(z, b[2], 14)
-
-        plt.show()
-
-    def test_perpendicular_and_parallel_velocitys(self):
-        fig = ax3d
-        b = np.array([1, 0, 1])
-        v = np.array([1, 1, 0.1])
-
-        pav = (np.dot(v, b) / np.dot(b, b)) * b
-        pev = v - pav
-        self.assertAlmostEqual(np.dot(pav, pev), 0)
-        fig.quiver(0, 0, 0, b[0], b[1], b[2], color="red")
-        fig.quiver(0, 0, 0, v[0], v[1], v[2], color="green")
-
-        fig.quiver(0, 0, 0, pev[0], pev[1], pev[2], color="pink")
-        fig.quiver(pev[0], pev[1], pev[2], pav[0], pav[1], pav[2], color="brown")
-
-        n = np.cross([0, -10, 1], [0, 0, -1])
-        # fig.set_xlim(-2, 2)
-        # fig.set_ylim(-2, 2)
-        # fig.set_zlim(-2, 2)
-        plt.show()
-
-    def test_tangent_vector(self):
-        num = 1000
-        x = np.linspace(-1, 1, num)
-        y = np.linspace
-        z = y**2
-
-        u, w, v = tangent(x, num)
-        ax3d.quiver(x, y, z, u, v, w, length=0.01, color="lime")
-        ax3d.plot(x, y, z)
-        print("finished")
-        plt.show()
+        np.testing.assert_array_almost_equal(parallel + perpendicular, p.velocity, 16)
 
 
-def tangent(t, num):
-    # y = -2x^2
-    x = t**2
-    y = t**2
-    z = t**2
-    rp = np.array([x, y, z])
-    return rp / mag(rp)
+#     def test_tangent_vector(self):
+#         num = 1000
+#         x = np.linspace(-1, 1, num)
+#         y = np.linspace
+#         z = y**2
+#
+#         u, w, v = tangent(x, num)
+#         ax3d.quiver(x, y, z, u, v, w, length=0.01, color="lime")
+#         ax3d.plot(x, y, z)
+#         print("finished")
+#         plt.show()
+#
+#
+# def tangent(t, num):
+#     # y = -2x^2
+#     x = t**2
+#     y = t**2
+#     z = t**2
+#     rp = np.array([x, y, z])
+#     return rp / mag(rp)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
-import numpy
-import numpy as np
-from matplotlib import pyplot as plt
+# import numpy as np
+# from matplotlib import pyplot as plt
 from functions import *
 import logging
 
@@ -65,31 +64,29 @@ class PosComputeParticle(BaseParticle):
     def magnetic_field(self):
         # v = -2x^2
         x, y, z = self.position
-        u = 0
+        u = 1
         v = 0
         # w = -400000 * self.position[2]
         w = 1
         b = 1 + z * 10**15
-        if b > 1.99:
-            p = 1
         rp = np.array([u, v, w])
         return b * rp / mag(rp)
 
     def pitch_angle(self):
-        pa = np.arccos(mag(self.parallel_velocity()) / mag(self.velocity))
-        self.deg = pa * 180 / np.pi
+        return np.arccos(mag(self.parallel_velocity()) / mag(self.velocity))
 
-        print(self.deg)
-        return pa
+    def update_position(self, magnetic_field=True, delta_s=(1 / 64) * 10**-17):
+        if magnetic_field == True:
+            magnetic_field = self.magnetic_field()
 
-    def update_position(self, delta_s=1 / 48 * 10**-11):
         self.interation += 1
+
         # what is the force
-        force = self.charge * np.cross(self.velocity, self.magnetic_field())
+        force = self.charge * np.cross(self.velocity, magnetic_field)
         # accel = force/mass
         accel = force / self.mass
         # increment velocity based on accel
-        self.velocity += accel * delta_s
+        self.velocity += delta_s * accel
         self.velocity = self.speed * unit_vector(self.velocity)
         # increment position based on velocity
         self.position += self.velocity * delta_s
@@ -156,17 +153,19 @@ class SimpleParticle(BaseParticle):
         x = self.x(t)
         y = self.y(t)
         z = self.z(t)
-        n2_hat = unit_vector(np.cross(x_axes, self.magnetic_field()))
+        print([v, x, y, z])
+        unit_vector(np.cross(x_axes, self.magnetic_field()))
         n1_hat = unit_vector(np.cross(self.magnetic_field(), y_axes))
         b_hat = unit_vector(self.magnetic_field())
         pos = np.array(x * n1_hat + y * n2_hat + z * b_hat)
         self.velocity = np.array(v[0] * n1_hat + v[1] * n2_hat + v[2] * b_hat)
         self.position = pos
-        x, y, z = self.position
+        x_, y_, z_ = self.position
         super().update()
-        return x, y, z
+        return x_, y_, z_
 
     def magnetic_field(self):
+        print(self)
         return np.array([0, 0, 1])
 
 
@@ -210,4 +209,5 @@ class SimpleParticleNumerical(BaseParticle):
         return x, y, z
 
     def magnetic_field(self):
+        print(self)
         return np.array([0, 0, 1])

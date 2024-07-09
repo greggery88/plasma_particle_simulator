@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+# noinspection PyUnusedLocal
 def main(particle_type="electron", case="1"):
     fig = plt.figure()
     ax = fig.add_subplot(projection="3d")
