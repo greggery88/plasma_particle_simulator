@@ -12,8 +12,9 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 fig = plt.figure()
-ax = fig.add_subplot(projection="3d")
-p = ComputeParticle(lfp.get_pd()["electron"])
+ax3d = fig.add_subplot(projection="3d")
+ax2d = fig.add_subplot()
+p = PosComputeParticle(lfp.get_pd()["electron"])
 
 
 class MyTestCase(unittest.TestCase):
@@ -109,24 +110,23 @@ class MyTestCase(unittest.TestCase):
         plt.show()
 
     def test_perpendicular_and_parallel_velocitys(self):
-        b_ = np.array([1, 0, 0])
-        n1, n2, b = p.axes(b_)
-        v = np.array([1, 1, 0])
-        pev = np.cross(n2, b)
-        pav = np.cross(b, n1)
+        fig = ax
+        b = np.array([1, 0, 1])
+        v = np.array([1, 1, 0.1])
+
+        pav = (np.dot(v, b) / np.dot(b, b)) * b
+        pev = v - pav
         fig.quiver(0, 0, 0, b[0], b[1], b[2], color="red")
         fig.quiver(0, 0, 0, v[0], v[1], v[2], color="green")
-        # fig.quiver(0, 0, 0, n1[0], n1[1], n1[2], color="k")
-        fig.quiver(0, 0, 0, n2[0], n2[1], n2[2], color="silver")
 
-        fig.quiver(0, 0, 0, -pev[1], pev[0], pev[2], color="pink")
-        fig.quiver(pev[0], pev[1], pev[2], pav[0], pav[1], pav[2], color="brown")
+        fig.quiver(pav[0], pav[1], pav[2], pev[0], pev[1], pev[2], color="pink")
+        fig.quiver(0, 0, 0, pav[0], pav[1], pav[2], color="brown")
 
         n = np.cross([0, -10, 1], [0, 0, -1])
         # fig.set_xlim(-2, 2)
         # fig.set_ylim(-2, 2)
         # fig.set_zlim(-2, 2)
-        # plt.show()
+        plt.show()
 
     def test_tangent_vector(self):
         x = np.linspace(-1, 1, 20)

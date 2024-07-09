@@ -2,7 +2,10 @@ import numpy
 import numpy as np
 from matplotlib import pyplot as plt
 from functions import *
+import logging
 
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 # x, y, z axes
 x_axes = np.array([1, 0, 0])
 y_axes = np.array([0, 1, 0])
@@ -13,8 +16,8 @@ class BaseParticle(object):
     def __init__(
         self,
         params,
-        start_position_=np.array([0.0, 0.0, 0.0]),
-        start_velocity_=np.array([-10.0, 0.0, 0.1]),
+        start_position_=np.array([0.0, 0.0, 0.1]),
+        start_velocity_=np.array([1.0, 0.0, 100]),
     ):
         start_position = start_position_
         start_velocity = start_velocity_
@@ -60,7 +63,7 @@ class PosComputeParticle(BaseParticle):
         y = 0
         z = -400000 * self.position[2]
         rp = np.array([x, y, z])
-        return 10 * (rp / mag(rp))
+        return 1 * unit_vector(rp / mag(rp))
 
     def update_position(self, delta_s=1 / 48 * 10**-11):
         self.interation += 1
@@ -74,47 +77,16 @@ class PosComputeParticle(BaseParticle):
         # increment position based on velocity
         self.position += self.velocity * delta_s
         if self.interation % 1000 == 0:
-            print(self.interation)
+            # print(self.interation)
             super().update()
+            print(mag(self.parallel_velocity()))
+            log.info(mag(self.velocity - self.parallel_velocity()))
 
-    def axes(self, b):
-        n1 = unit_vector(np.cross(np.array([0, 1, 0]), b))
-        n2 = unit_vector(np.cross(b, n1))
-        b = unit_vector(b)
-        return n1, n2, b
-
-
-class ComputeParticle(BaseParticle):
-    def __init__(self, p_type):
-        super().__init__(p_type)
-
-    def magnetic_field(self):
-        x, y, x = self.position
-        return np.array([0.0, 0.0, 10.0])
-
-    def update_position(self, delta_s=10**-10):
-        # what is the force
-        force = self.charge * np.cross(self.velocity, self.magnetic_field())
-        # accel = force/mass
-        accel = force / self.mass
-        # increment velocity based on accel
-        self.velocity += accel * delta_s
-
-        # increment position based on velocity
-        self.position += self.velocity * delta_s
-
-        super().update()
-
-    def axes(self, b):
-        n1 = unit_vector(np.cross(np.array([0, 1, 0]), b))
-        n2 = unit_vector(np.cross(unit_vector(b), np.array([1, 0, 0])))
-        b = unit_vector(b)
-        return n1, n2, b
-
-    def perpindicular_parallel_velocitys(self):
-        perpendicular_velocity = 1
-        parallel_velocity = 1
-        return perpendicular_velocity, parallel_velocity
+    def parallel_velocity(self):
+        b = self.magnetic_field()
+        v = self.velocity
+        pav = (np.dot(v, b) / np.dot(b, b)) * b
+        return pav
 
 
 class SimpleParticle(BaseParticle):

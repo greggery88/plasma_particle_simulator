@@ -39,12 +39,16 @@ def draw_display(ax, p, params):
     x, y, z = p.get_position()
     hx, hy, hz = p.get_history()
     u, v, w = p.magnetic_field()
-
+    l = len(hx) - 1
     # plot the particle
     ax.cla()
-    ax.quiver(x, y, z, u, v, w)
+    u, v, w = p.parallel_velocity()
+    plt.quiver(x, y, z, u, v, w, length=5 * 10**-8)
+    u, v, w = p.velocity - p.parallel_velocity()
+    plt.quiver(x, y, z, u, v, w, length=5 * 10**-8)
+    # ax.quiver(x, y, z, u, v, w)
     plt.plot(hx, hy, hz, c=params["c"], alpha=0.3)
-    plt.plot(x, y, z, c=params["c"], alpha=1, marker="o")
+    plt.plot(hx[l], hy[l], hz[l], c=params["c"], alpha=1, marker="o")
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
@@ -65,11 +69,12 @@ def main(model):
 
     # particle
     p = model(pd["proton"])
+    for _ in range(5000000):
+        p.update_position()
 
     def animate_particle(t, fig, ax):
         log.info(next(n))
-        for _ in range(500000):
-            p.update_position()
+
         draw_display(ax, p, params)
         scale = 5 * 10**-10
         # ax.set_ylim(-3 * scale, 3 * scale)
@@ -84,7 +89,7 @@ def main(model):
     anim = FuncAnimation(
         fig,
         animate_particle,
-        frames=4,
+        frames=10000,
         repeat=False,
         fargs=(fig, ax),
     )
