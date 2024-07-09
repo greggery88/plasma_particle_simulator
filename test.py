@@ -12,12 +12,29 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 fig = plt.figure()
-ax3d = fig.add_subplot(projection="3d")
 ax2d = fig.add_subplot()
+ax3d = fig.add_subplot(projection="3d")
+
 p = PosComputeParticle(lfp.get_pd()["electron"])
 
 
 class MyTestCase(unittest.TestCase):
+    def test_mirroring(self):
+        pitch_ang = p.pitch_angle()
+
+    def test_speed(self):
+        p.speed = 1
+        for _ in range(100000):
+            p.update_position()
+        self.assertEqual(p.speed, 1, "speed constant")
+        self.assertEqual(mag(p.velocity), p.speed, "speed = velocity mag")
+        self.assertEqual(mag(p.velocity), 1, "velocity = 1")
+
+    def test_unctions(self):
+        v = np.array([3, 0, 4])
+        self.assertEqual(mag(v), 5)
+        self.assertEqual(mag(unit_vector(v)), 1)
+
     def test_what_did_i_break(self):
 
         p = PosComputeParticle(lfp.pd["electron"])
@@ -28,7 +45,7 @@ class MyTestCase(unittest.TestCase):
             * unit_vector(np.cross(p.velocity, p.magnetic_field()))
         )
 
-        for _ in range(10000):
+        for _ in range(1000):
             p.update_position()
         rc = (
             p.mass
@@ -110,17 +127,18 @@ class MyTestCase(unittest.TestCase):
         plt.show()
 
     def test_perpendicular_and_parallel_velocitys(self):
-        fig = ax
+        fig = ax3d
         b = np.array([1, 0, 1])
         v = np.array([1, 1, 0.1])
 
         pav = (np.dot(v, b) / np.dot(b, b)) * b
         pev = v - pav
+        self.assertAlmostEqual(np.dot(pav, pev), 0)
         fig.quiver(0, 0, 0, b[0], b[1], b[2], color="red")
         fig.quiver(0, 0, 0, v[0], v[1], v[2], color="green")
 
-        fig.quiver(pav[0], pav[1], pav[2], pev[0], pev[1], pev[2], color="pink")
-        fig.quiver(0, 0, 0, pav[0], pav[1], pav[2], color="brown")
+        fig.quiver(0, 0, 0, pev[0], pev[1], pev[2], color="pink")
+        fig.quiver(pev[0], pev[1], pev[2], pav[0], pav[1], pav[2], color="brown")
 
         n = np.cross([0, -10, 1], [0, 0, -1])
         # fig.set_xlim(-2, 2)
@@ -129,21 +147,23 @@ class MyTestCase(unittest.TestCase):
         plt.show()
 
     def test_tangent_vector(self):
-        x = np.linspace(-1, 1, 20)
-        y = -1 * x**2
-        u, w, v = tangent(x)
-        ax = fig.add_subplot()
-        ax.quiver(x, y, u, v)
-        ax.plot(x, y)
+        num = 1000
+        x = np.linspace(-1, 1, num)
+        y = np.linspace
+        z = y**2
 
+        u, w, v = tangent(x, num)
+        ax3d.quiver(x, y, z, u, v, w, length=0.01, color="lime")
+        ax3d.plot(x, y, z)
+        print("finished")
         plt.show()
 
 
-def tangent(t):
+def tangent(t, num):
     # y = -2x^2
-    x = 1 - t + t
-    y = np.zeros(20)
-    z = -4 * t
+    x = t**2
+    y = t**2
+    z = t**2
     rp = np.array([x, y, z])
     return rp / mag(rp)
 

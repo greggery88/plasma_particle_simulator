@@ -16,8 +16,8 @@ class BaseParticle(object):
     def __init__(
         self,
         params,
-        start_position_=np.array([0.0, 0.0, 0.1]),
-        start_velocity_=np.array([1.0, 0.0, 100]),
+        start_position_=np.array([1.0, 1.0, 0.0]),
+        start_velocity_=unit_vector(np.array([1.0, 0.0, 0.000001])),
     ):
         start_position = start_position_
         start_velocity = start_velocity_
@@ -27,6 +27,7 @@ class BaseParticle(object):
 
         self.start_position = start_position
         self.start_velocity = start_velocity
+        self.speed = mag(start_velocity_)
 
         self.position = start_position
         self.velocity = start_velocity
@@ -55,15 +56,31 @@ class BaseParticle(object):
 
 class PosComputeParticle(BaseParticle):
     def __init__(self, p_type):
+
         super().__init__(p_type)
+        self.pitch_angle_0 = self.pitch_angle()
+        self.b0 = self.magnetic_field()
+        self.bm = 1 / (mag(self.b0) * (np.sin(self.pitch_angle_0)) ** 2)
 
     def magnetic_field(self):
-        # y = -2x^2
-        x = 1
-        y = 0
-        z = -400000 * self.position[2]
-        rp = np.array([x, y, z])
-        return 1 * unit_vector(rp / mag(rp))
+        # v = -2x^2
+        x, y, z = self.position
+        u = 0
+        v = 0
+        # w = -400000 * self.position[2]
+        w = 1
+        b = 1 + z * 10**15
+        if b > 1.99:
+            p = 1
+        rp = np.array([u, v, w])
+        return b * rp / mag(rp)
+
+    def pitch_angle(self):
+        pa = np.arccos(mag(self.parallel_velocity()) / mag(self.velocity))
+        self.deg = pa * 180 / np.pi
+
+        print(self.deg)
+        return pa
 
     def update_position(self, delta_s=1 / 48 * 10**-11):
         self.interation += 1
@@ -73,14 +90,12 @@ class PosComputeParticle(BaseParticle):
         accel = force / self.mass
         # increment velocity based on accel
         self.velocity += accel * delta_s
-
+        self.velocity = self.speed * unit_vector(self.velocity)
         # increment position based on velocity
         self.position += self.velocity * delta_s
-        if self.interation % 1000 == 0:
+        if self.interation % 100 == 0:
             # print(self.interation)
             super().update()
-            print(mag(self.parallel_velocity()))
-            log.info(mag(self.velocity - self.parallel_velocity()))
 
     def parallel_velocity(self):
         b = self.magnetic_field()

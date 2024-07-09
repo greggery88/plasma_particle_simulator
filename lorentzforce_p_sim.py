@@ -48,7 +48,7 @@ def draw_display(ax, p, params):
     plt.quiver(x, y, z, u, v, w, length=5 * 10**-8)
     # ax.quiver(x, y, z, u, v, w)
     plt.plot(hx, hy, hz, c=params["c"], alpha=0.3)
-    plt.plot(hx[l], hy[l], hz[l], c=params["c"], alpha=1, marker="o")
+    # plt.plot(hx[l], hy[l], hz[l], c=params["c"], alpha=1, marker="o")
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
@@ -69,12 +69,13 @@ def main(model):
 
     # particle
     p = model(pd["proton"])
-    for _ in range(5000000):
-        p.update_position()
 
     def animate_particle(t, fig, ax):
         log.info(next(n))
-
+        for _ in range(1000000):
+            p.update_position()
+        print(mag(p.velocity))
+        p.pitch_angle()
         draw_display(ax, p, params)
         scale = 5 * 10**-10
         # ax.set_ylim(-3 * scale, 3 * scale)
@@ -89,7 +90,7 @@ def main(model):
     anim = FuncAnimation(
         fig,
         animate_particle,
-        frames=10000,
+        frames=100,
         repeat=False,
         fargs=(fig, ax),
     )
