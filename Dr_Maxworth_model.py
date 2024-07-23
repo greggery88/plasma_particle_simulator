@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # noinspection PyUnusedLocal
-def main(particle_type="electron", case="1"):
+def main(particle_type="Electron", case="1"):
     fig = plt.figure()
     ax = fig.add_subplot(projection="3d")
 
@@ -20,12 +20,12 @@ def main(particle_type="electron", case="1"):
 
     # particle dictionaries
     pd = {
-        "proton": {"m": 1.67 * 10**-27, "Q": e, "c": "r", "view": 9**9},
-        "electron": {"m": 9.11 * 10**-31, "Q": -e, "c": "b", "view": 1},
+        "Proton": {"m": 1.67 * 10**-27, "Q": e, "c": "r", "view": 9**9},
+        "Electron": {"m": 9.11 * 10**-31, "Q": -e, "c": "b", "view": 0.5},
     }
     fpt = {
-        "1": " moving under only the magnetic field",
-        "2": " moving under the magnetic and electric field",
+        "1": " moving under only the magnetic field with no parallel velocity",
+        "2": " moving under the magnetic and a parallel velocity",
         "3": 1,
         "4": 1,
     }
@@ -110,8 +110,15 @@ def main(particle_type="electron", case="1"):
         quit()
 
     # animation function
-    anim = FuncAnimation(plt.gcf(), animate_particle, frames=500, repeat=False)
+    anim = FuncAnimation(
+        plt.gcf(), animate_particle, frames=1000, repeat=False, interval=50
+    )
     fig.canvas.mpl_connect("close_event", on_close_event)
 
     # print graphic
-    plt.show()
+
+    anim.save("pythonDrMaxWorthModel.gif")
+
+
+if __name__ == "__main__":
+    main("Electron", "2")
